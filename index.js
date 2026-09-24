@@ -52,6 +52,34 @@ function getISTTime(timestamp = Date.now()) {
   });
 }
 
+function formatRelativeTime(timestamp, referenceTimestamp = Date.now()) {
+  const diffMs = Math.max(0, referenceTimestamp - timestamp);
+  const diffSec = Math.floor(diffMs / 1000);
+
+  if (diffSec < 60) {
+    return `${diffSec}s ago`;
+  }
+
+  const diffMin = Math.floor(diffSec / 60);
+  const remainingSec = diffSec % 60;
+
+  if (diffMin < 60) {
+    return remainingSec > 0 ? `${diffMin}m ${remainingSec}s ago` : `${diffMin}m ago`;
+  }
+
+  const diffHours = Math.floor(diffMin / 60);
+  const remainingMin = diffMin % 60;
+
+  if (diffHours < 24) {
+    return remainingMin > 0 ? `${diffHours}h ${remainingMin}m ago` : `${diffHours}h ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+  const remainingHours = diffHours % 24;
+
+  return remainingHours > 0 ? `${diffDays}d ${remainingHours}h ago` : `${diffDays}d ago`;
+}
+
 function createCommand(target) {
   const command = {
     id: ++commandCounter,
@@ -159,6 +187,8 @@ async function runAutoSequence() {
   const durationFormatted = `${durationMins}m ${remainingSec}s`;
 
   triggerHistory.unshift({
+    startTimeMs,
+    stopTimeMs,
     startTime: startTimeStr,
     stopTime: stopTimeStr,
     duration: durationFormatted,
@@ -391,9 +421,11 @@ discord.on("interactionCreate", async interaction => {
   if (interaction.customId === "shockwave_history") {
     let historyText = "No history recorded yet for the last 5 triggers.";
     if (triggerHistory.length > 0) {
-      historyText = triggerHistory.map((h, i) => 
-        `**#${i+1}**\n• Start (IST): \`${h.startTime}\`\n• Stop (IST): \`${h.stopTime}\`\n• Duration: \`${h.duration}\`\n• Loops Completed: **${h.loops}**\n• Details: *${h.details}*`
-      ).join("\n\n");
+      historyText = triggerHistory.map((h, i) => {
+        const startedRelative = formatRelativeTime(h.startTimeMs);
+        const stoppedRelative = formatRelativeTime(h.stopTimeMs);
+        return `**#${i+1}**\n• Started: ${startedRelative} (\`${h.startTime}\` IST)\n• Stopped: ${stoppedRelative} (\`${h.stopTime}\` IST)\n• Duration: \`${h.duration}\`\n• Loops Completed: **${h.loops}**\n• Details: *${h.details}*`;
+      }).join("\n\n");
     }
 
     return interaction.reply({
