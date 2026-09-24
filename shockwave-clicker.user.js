@@ -153,32 +153,7 @@
 
     if (!el) throw new Error("No element at target position");
 
-    ["pointerdown", "mousedown", "pointerup", "mouseup"].forEach(function (type) {
-      try {
-        var Ctor =
-          type.indexOf("pointer") === 0 && window.PointerEvent
-            ? window.PointerEvent
-            : window.MouseEvent;
-
-        el.dispatchEvent(new Ctor(type, {
-          bubbles: true,
-          cancelable: true,
-          clientX: x,
-          clientY: y
-        }));
-      } catch (e) {}
-    });
-
-    if (typeof el.click === "function") {
-      el.click();
-    } else {
-      el.dispatchEvent(new window.MouseEvent("click", {
-        bubbles: true,
-        cancelable: true,
-        clientX: x,
-        clientY: y
-      }));
-    }
+    el.click();
 
     try {
       if (typeof dot.animate === "function") {
