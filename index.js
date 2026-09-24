@@ -52,6 +52,33 @@ function getISTTime(timestamp = Date.now()) {
   });
 }
 
+function formatRelativeTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+
+  if (totalSeconds < 60) {
+    return `${totalSeconds}s ago`;
+  }
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (totalMinutes < 60) {
+    return `${totalMinutes}m ${seconds}s ago`;
+  }
+
+  const totalHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (totalHours < 24) {
+    return `${totalHours}h ${minutes}m ago`;
+  }
+
+  const totalDays = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+
+  return `${totalDays}d ${hours}h ago`;
+}
+
 function createCommand(target) {
   const command = {
     id: ++commandCounter,
@@ -159,6 +186,8 @@ async function runAutoSequence() {
   const durationFormatted = `${durationMins}m ${remainingSec}s`;
 
   triggerHistory.unshift({
+    startTimeMs,
+    stopTimeMs,
     startTime: startTimeStr,
     stopTime: stopTimeStr,
     duration: durationFormatted,
@@ -360,6 +389,12 @@ function buildPanelPayload() {
       .setCustomId("shockwave_history")
       .setLabel("Last 5 Triggers")
       .setEmoji("📜")
+      .setStyle(ButtonStyle.Secondary),
+
+    new ButtonBuilder()
+      .setCustomId("shockwave_last99")
+      .setLabel("Last 99%")
+      .setEmoji("📊")
       .setStyle(ButtonStyle.Secondary)
   );
 
@@ -398,6 +433,30 @@ discord.on("interactionCreate", async interaction => {
 
     return interaction.reply({
       content: `📜 **Last 5 Trigger History Logs:**\n\n${historyText}`,
+      ephemeral: true
+    });
+  }
+
+  if (interaction.customId === "shockwave_last99") {
+    let content;
+
+    if (triggerHistory.length === 0) {
+      content = "No 99% triggers recorded yet.";
+    } else {
+      const latest = triggerHistory[0];
+      const relativeStart = formatRelativeTime(now() - latest.startTimeMs);
+
+      content =
+        `📊 **Last 99% Trigger:**\n\n` +
+        `• **Started:** ${relativeStart} (\`${latest.startTime}\` IST)\n` +
+        `• **Stopped:** \`${latest.stopTime}\` IST\n` +
+        `• **Duration:** \`${latest.duration}\`\n` +
+        `• **Loops Completed:** **${latest.loops}**\n` +
+        `• **Details:** *${latest.details}*`;
+    }
+
+    return interaction.reply({
+      content,
       ephemeral: true
     });
   }
