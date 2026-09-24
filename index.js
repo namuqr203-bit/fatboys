@@ -117,7 +117,7 @@ async function fetchAndCheckProgress() {
       console.log(`[RAIN STATE] Trigger progress updated: ${latestProgressPercent}% -> ${percent}%`);
       latestProgressPercent = percent;
 
-      if (percent === 99 && !isSequenceRunning) {
+      if ((percent === 98 || percent === 99) && !isSequenceRunning) {
         runAutoSequence();
       }
     }
@@ -134,32 +134,32 @@ async function runAutoSequence() {
   const startTimeStr = getISTTime(startTimeMs);
   let repeatLoopsCount = 0;
 
-  console.log(`🚀 Starting 99% automated click sequence at ${startTimeStr} IST`);
+  console.log(`🚀 Starting automated click sequence at ${startTimeStr} IST`);
 
   try {
     createCommand(1);
-    console.log("Clicked Button 1 (at 99%)");
+    console.log("Clicked Button 1");
 
     await wait(40000);
 
     createCommand(2);
     console.log("Clicked Button 2 (after 40s)");
 
-    while (latestProgressPercent === 99) {
+    while (latestProgressPercent === 98 || latestProgressPercent === 99) {
       await wait(5000);
-      if (latestProgressPercent !== 99) break;
+      if (latestProgressPercent !== 98 && latestProgressPercent !== 99) break;
 
       createCommand(1);
       await wait(3000);
-      if (latestProgressPercent !== 99) break;
+      if (latestProgressPercent !== 98 && latestProgressPercent !== 99) break;
 
       createCommand(2);
       await wait(25000);
-      if (latestProgressPercent !== 99) break;
+      if (latestProgressPercent !== 98 && latestProgressPercent !== 99) break;
 
       createCommand(1);
       await wait(3000);
-      if (latestProgressPercent !== 99) break;
+      if (latestProgressPercent !== 98 && latestProgressPercent !== 99) break;
 
       createCommand(2);
       repeatLoopsCount++;
@@ -170,7 +170,7 @@ async function runAutoSequence() {
     console.error("Error in automation sequence:", err);
   }
 
-  console.log("🛑 Progress dropped from 99%. Executing shutdown confirmation clicks on Button 2...");
+  console.log("🛑 Progress dropped outside of 98%/99%. Executing shutdown confirmation clicks on Button 2...");
   
   createCommand(2);
   await wait(5000);
@@ -192,7 +192,7 @@ async function runAutoSequence() {
     stopTime: stopTimeStr,
     duration: durationFormatted,
     loops: repeatLoopsCount,
-    details: `Hit 99% at ${startTimeStr}, did 40s initial sequence, repeated loop ${repeatLoopsCount} times, stopped at ${stopTimeStr}`
+    details: `Triggered at ${startTimeStr}, did initial sequence, repeated loop ${repeatLoopsCount} times, stopped at ${stopTimeStr}`
   });
 
   if (triggerHistory.length > 5) {
@@ -441,13 +441,13 @@ discord.on("interactionCreate", async interaction => {
     let content;
 
     if (triggerHistory.length === 0) {
-      content = "No 99% triggers recorded yet.";
+      content = "No triggers recorded yet.";
     } else {
       const latest = triggerHistory[0];
       const relativeStart = formatRelativeTime(now() - latest.startTimeMs);
 
       content =
-        `📊 **Last 99% Trigger:**\n\n` +
+        `📊 **Last Trigger (98%/99%):**\n\n` +
         `• **Started:** ${relativeStart} (\`${latest.startTime}\` IST)\n` +
         `• **Stopped:** \`${latest.stopTime}\` IST\n` +
         `• **Duration:** \`${latest.duration}\`\n` +
