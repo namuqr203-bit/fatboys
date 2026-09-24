@@ -164,8 +164,7 @@
           bubbles: true,
           cancelable: true,
           clientX: x,
-          clientY: y,
-          view: window
+          clientY: y
         }));
       } catch (e) {}
     });
@@ -177,8 +176,7 @@
         bubbles: true,
         cancelable: true,
         clientX: x,
-        clientY: y,
-        view: window
+        clientY: y
       }));
     }
 
